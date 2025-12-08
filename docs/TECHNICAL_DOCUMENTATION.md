@@ -47,46 +47,43 @@
 
 ## 🏗️ Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT (Browser)                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │   React     │  │   Framer    │  │  Tailwind   │  │    React Router     │ │
-│  │ Components  │  │   Motion    │  │    CSS      │  │      (Routing)      │ │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
-│         │                │                │                     │            │
-│         └────────────────┼────────────────┼─────────────────────┘            │
-│                          ▼                ▼                                  │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                         Context Providers                              │   │
-│  │  ┌────────────┐    ┌────────────┐    ┌────────────┐                   │   │
-│  │  │ AuthContext│    │CartContext │    │ToastContext│                   │   │
-│  │  └────────────┘    └────────────┘    └────────────┘                   │   │
-│  └──────────────────────────────────────────────────────────────────────┘   │
-│                                     │                                        │
-│                                     ▼                                        │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                        Service Layer (lib/)                           │   │
-│  │  ┌────────────┐    ┌────────────┐    ┌────────────┐                   │   │
-│  │  │  books.js  │    │  orders.js │    │ firebase.js│                   │   │
-│  │  └────────────┘    └────────────┘    └────────────┘                   │   │
-│  └──────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      │ HTTPS
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           FIREBASE CLOUD                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────┐         ┌─────────────────────┐                    │
-│  │   Firebase Auth     │         │   Cloud Firestore   │                    │
-│  │                     │         │                     │                    │
-│  │  • Email/Password   │         │  • books collection │                    │
-│  │  • Google Sign-In   │         │  • orders collection│                    │
-│  │  • Session Mgmt     │         │  • users collection │                    │
-│  └─────────────────────┘         └─────────────────────┘                    │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Client["🌐 CLIENT (Browser)"]
+        subgraph UI["UI Layer"]
+            React["⚛️ React Components"]
+            Framer["🎬 Framer Motion"]
+            Tailwind["🎨 Tailwind CSS"]
+            Router["🔀 React Router"]
+        end
+        
+        subgraph Context["Context Providers"]
+            Auth["AuthContext"]
+            Cart["CartContext"]
+            Toast["ToastContext"]
+        end
+        
+        subgraph Services["Service Layer (lib/)"]
+            BooksJS["books.js"]
+            OrdersJS["orders.js"]
+            FirebaseJS["firebase.js"]
+        end
+    end
+    
+    subgraph Firebase["☁️ FIREBASE CLOUD"]
+        FireAuth["🔐 Firebase Auth\n• Email/Password\n• Google Sign-In"]
+        Firestore["🗄️ Cloud Firestore\n• books collection\n• orders collection\n• users collection"]
+    end
+    
+    UI --> Context
+    Context --> Services
+    Services -->|HTTPS| Firebase
+
+    style Client fill:#f0f9ff,stroke:#0ea5e9
+    style Firebase fill:#fff7ed,stroke:#f97316
+    style UI fill:#fdf4ff,stroke:#d946ef
+    style Context fill:#f0fdf4,stroke:#22c55e
+    style Services fill:#fefce8,stroke:#eab308
 ```
 
 ---
@@ -95,116 +92,107 @@
 
 ### User Shopping Flow
 
-```
-┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐
-│  Browse │────▶│  View   │────▶│  Add to │────▶│Checkout │────▶│  Order  │
-│  Shop   │     │  Book   │     │  Cart   │     │         │     │ Created │
-└─────────┘     └─────────┘     └─────────┘     └─────────┘     └─────────┘
-     │               │               │               │               │
-     ▼               ▼               ▼               ▼               ▼
-┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐
-│getBooks │     │getBook  │     │CartCtx  │     │createOrd│     │updateStk│
-│   ()    │     │ ById()  │     │addToCart│     │  er()   │     │   ()    │
-└─────────┘     └─────────┘     └─────────┘     └─────────┘     └─────────┘
-     │               │               │               │               │
-     ▼               ▼               ▼               ▼               ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Firestore Database                               │
-│   books collection          localStorage          orders collection      │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    A["🛒 Browse\nShop"] --> B["📖 View\nBook"]
+    B --> C["➕ Add to\nCart"]
+    C --> D["💳 Checkout"]
+    D --> E["✅ Order\nCreated"]
+    
+    A -.-> F["getBooks()"]
+    B -.-> G["getBookById()"]
+    C -.-> H["CartContext\naddToCart()"]
+    D -.-> I["createOrder()"]
+    E -.-> J["updateStock()"]
+    
+    subgraph DB["🗄️ Database"]
+        K["books\ncollection"]
+        L["localStorage\n(cart)"]
+        M["orders\ncollection"]
+    end
+    
+    F --> K
+    H --> L
+    I --> M
+    J --> K
+
+    style A fill:#dbeafe,stroke:#3b82f6
+    style E fill:#dcfce7,stroke:#22c55e
+    style DB fill:#fef3c7,stroke:#f59e0b
 ```
 
 ### State Management Flow
 
-```
-                    ┌──────────────────────────────────┐
-                    │         React Components          │
-                    │                                  │
-                    │  ┌──────┐ ┌──────┐ ┌──────────┐  │
-                    │  │ Home │ │ Shop │ │BookDetail│  │
-                    │  └──┬───┘ └──┬───┘ └────┬─────┘  │
-                    │     │        │          │        │
-                    └─────┼────────┼──────────┼────────┘
-                          │        │          │
-              ┌───────────┼────────┼──────────┼───────────┐
-              │           ▼        ▼          ▼           │
-              │     ┌─────────────────────────────────┐   │
-              │     │        Context Layer            │   │
-              │     │                                 │   │
-              │     │  AuthContext   CartContext      │   │
-              │     │  • user        • cart[]         │   │
-              │     │  • loading     • addToCart()    │   │
-              │     │  • login()     • removeItem()   │   │
-              │     │  • logout()    • clearCart()    │   │
-              │     │                                 │   │
-              │     │        ToastContext             │   │
-              │     │  • success()   • error()        │   │
-              │     └─────────────────────────────────┘   │
-              │                     │                     │
-              │                     ▼                     │
-              │     ┌─────────────────────────────────┐   │
-              │     │       Service Layer             │   │
-              │     │                                 │   │
-              │     │  books.js ──▶ Firestore/Mock    │   │
-              │     │  orders.js ──▶ Firestore/Mock   │   │
-              │     │  firebase.js ──▶ Firebase SDK   │   │
-              │     └─────────────────────────────────┘   │
-              └───────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Components["React Components"]
+        Home["🏠 Home"]
+        Shop["🛍️ Shop"]
+        BookDetail["📚 BookDetail"]
+        Cart["🛒 Cart"]
+        Admin["📊 Admin"]
+    end
+    
+    subgraph Contexts["Context Layer"]
+        AuthCtx["AuthContext\n• user\n• loading\n• login()\n• logout()"]
+        CartCtx["CartContext\n• cart[]\n• addToCart()\n• removeItem()\n• clearCart()"]
+        ToastCtx["ToastContext\n• success()\n• error()\n• info()"]
+    end
+    
+    subgraph Services["Service Layer"]
+        Books["books.js → Firestore"]
+        Orders["orders.js → Firestore"]
+        FB["firebase.js → Firebase SDK"]
+    end
+    
+    Components --> Contexts
+    Contexts --> Services
+
+    style Components fill:#ede9fe,stroke:#8b5cf6
+    style Contexts fill:#dcfce7,stroke:#22c55e
+    style Services fill:#fef3c7,stroke:#f59e0b
 ```
 
 ---
 
 ## 🧩 Component Architecture
 
-```
-App.jsx
-│
-├── AuthProvider
-│   └── CartProvider
-│       └── ToastProvider
-│           └── BrowserRouter
-│               │
-│               ├── Layout.jsx (with page transitions)
-│               │   ├── Navbar.jsx
-│               │   │   ├── Logo
-│               │   │   ├── Navigation Links
-│               │   │   └── Cart Icon (with badge)
-│               │   │
-│               │   ├── <Routes>
-│               │   │   ├── Home.jsx
-│               │   │   │   ├── Hero.jsx (floating animations)
-│               │   │   │   ├── FeaturedBooks.jsx (carousel)
-│               │   │   │   └── TopWriters.jsx (gradient rings)
-│               │   │   │
-│               │   │   ├── Shop.jsx
-│               │   │   │   ├── Filters.jsx (category/price)
-│               │   │   │   └── BookCard.jsx[] (3D tilt)
-│               │   │   │
-│               │   │   ├── BookDetails.jsx
-│               │   │   │   ├── Image Gallery
-│               │   │   │   ├── Product Info
-│               │   │   │   └── Add to Cart
-│               │   │   │
-│               │   │   ├── Cart.jsx
-│               │   │   │   ├── Cart Items
-│               │   │   │   └── Order Summary
-│               │   │   │
-│               │   │   ├── Checkout.jsx
-│               │   │   │   ├── Shipping Form
-│               │   │   │   └── Payment Form
-│               │   │   │
-│               │   │   └── AdminDashboard.jsx
-│               │   │       ├── Analytics Tab
-│               │   │       │   ├── StatCards
-│               │   │       │   ├── BarChart
-│               │   │       │   ├── TopBooks
-│               │   │       │   └── CustomerInsights
-│               │   │       ├── Orders Tab
-│               │   │       └── Inventory Tab
-│               │   │
-│               │   └── Footer.jsx
-│               │
-│               └── Toast Notifications (portal)
+```mermaid
+flowchart TB
+    App["App.jsx"]
+    
+    App --> AuthP["AuthProvider"]
+    AuthP --> CartP["CartProvider"]
+    CartP --> ToastP["ToastProvider"]
+    ToastP --> BRouter["BrowserRouter"]
+    
+    BRouter --> Layout["Layout.jsx\n(page transitions)"]
+    
+    Layout --> Navbar["Navbar.jsx\n• Logo\n• Nav Links\n• Cart Badge"]
+    Layout --> Routes["Routes"]
+    Layout --> Footer["Footer.jsx"]
+    
+    Routes --> Home["Home.jsx"]
+    Routes --> Shop["Shop.jsx"]
+    Routes --> BookDetails["BookDetails.jsx"]
+    Routes --> CartPage["Cart.jsx"]
+    Routes --> Checkout["Checkout.jsx"]
+    Routes --> Admin["AdminDashboard.jsx"]
+    
+    Home --> Hero["Hero.jsx\n(floating animations)"]
+    Home --> Featured["FeaturedBooks.jsx\n(carousel)"]
+    Home --> Writers["TopWriters.jsx\n(gradient rings)"]
+    
+    Shop --> Filters["Filters.jsx"]
+    Shop --> BookCards["BookCard.jsx[]\n(3D tilt)"]
+    
+    Admin --> Analytics["Analytics Tab\n• StatCards\n• BarChart\n• TopBooks"]
+    Admin --> OrdersTab["Orders Tab"]
+    Admin --> Inventory["Inventory Tab"]
+
+    style App fill:#fef3c7,stroke:#f59e0b
+    style Layout fill:#dbeafe,stroke:#3b82f6
+    style Admin fill:#dcfce7,stroke:#22c55e
 ```
 
 ---
@@ -213,238 +201,187 @@ App.jsx
 
 ### Firestore Collections Schema
 
-```
-firestore/
-│
-├── books/
-│   └── {bookId}/
-│       ├── title: string
-│       ├── author: string
-│       ├── price: number
-│       ├── originalPrice: number (optional)
-│       ├── category: string
-│       ├── description: string
-│       ├── cover: string (URL)
-│       ├── rating: number (1-5)
-│       ├── stock: number
-│       ├── createdAt: timestamp
-│       └── updatedAt: timestamp
-│
-├── orders/
-│   └── {orderId}/
-│       ├── items: array
-│       │   └── [{ bookId, title, author, price, quantity, cover }]
-│       ├── customer: object
-│       │   └── { name, email, address, city, zip }
-│       ├── payment: object
-│       │   └── { method, last4 }
-│       ├── subtotal: number
-│       ├── shipping: number
-│       ├── total: number
-│       ├── status: string (pending | confirmed | shipped | delivered)
-│       ├── createdAt: timestamp
-│       └── updatedAt: timestamp
-│
-└── users/
-    └── {userId}/
-        ├── displayName: string
-        ├── email: string
-        ├── photoURL: string (optional)
-        └── createdAt: timestamp
+```mermaid
+erDiagram
+    USERS {
+        string userId PK
+        string displayName
+        string email
+        string photoURL
+        timestamp createdAt
+    }
+    
+    BOOKS {
+        string bookId PK
+        string title
+        string author
+        number price
+        number originalPrice
+        string category
+        string description
+        string cover
+        number rating
+        number stock
+        timestamp createdAt
+        timestamp updatedAt
+    }
+    
+    ORDERS {
+        string orderId PK
+        string userId FK
+        array items
+        object customer
+        object payment
+        number subtotal
+        number shipping
+        number total
+        string status
+        timestamp createdAt
+        timestamp updatedAt
+    }
+    
+    ORDER_ITEMS {
+        string bookId FK
+        string orderId FK
+        number quantity
+        number price
+        string title
+        string cover
+    }
+    
+    USERS ||--o{ ORDERS : places
+    ORDERS ||--|{ ORDER_ITEMS : contains
+    BOOKS ||--o{ ORDER_ITEMS : referenced_in
 ```
 
-### Entity Relationship Diagram
+### Order Status Flow
 
-```
-┌─────────────────┐         ┌─────────────────┐
-│      USERS      │         │      BOOKS      │
-├─────────────────┤         ├─────────────────┤
-│ • userId (PK)   │         │ • bookId (PK)   │
-│ • displayName   │         │ • title         │
-│ • email         │         │ • author        │
-│ • photoURL      │         │ • price         │
-│ • createdAt     │         │ • stock         │
-└────────┬────────┘         │ • category      │
-         │                  │ • rating        │
-         │ 1                └────────┬────────┘
-         │                           │
-         │ places                    │ contains
-         │                           │
-         │ *                         │ *
-┌────────▼────────┐         ┌────────▼────────┐
-│     ORDERS      │◀────────│   ORDER_ITEMS   │
-├─────────────────┤ 1     * ├─────────────────┤
-│ • orderId (PK)  │         │ • bookId (FK)   │
-│ • userId (FK)   │         │ • orderId (FK)  │
-│ • customer{}    │         │ • quantity      │
-│ • total         │         │ • price         │
-│ • status        │         └─────────────────┘
-│ • createdAt     │
-└─────────────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: Order Created
+    Pending --> Confirmed: Admin Confirms
+    Confirmed --> Processing: Preparing
+    Processing --> Shipped: Dispatched
+    Shipped --> Delivered: Customer Received
+    
+    Pending --> Cancelled: User/Admin Cancels
+    Confirmed --> Cancelled: Admin Cancels
+    
+    Delivered --> [*]
+    Cancelled --> [*]
 ```
 
 ---
 
 ## 🔐 Authentication Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           AUTHENTICATION FLOW                                │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Start["👤 User Opens App"] --> Check{"AuthContext\nCheck Session"}
+    
+    Check -->|User Exists| LoggedIn["✅ Load Profile\nShow Full App"]
+    Check -->|No User| Guest["Show Login Button"]
+    
+    Guest --> Choice{"Login Method"}
+    
+    Choice -->|Email/Password| EmailAuth["signInWithEmail\nAndPassword()"]
+    Choice -->|Google| GoogleAuth["signInWithPopup()\nGoogleProvider"]
+    
+    EmailAuth --> Firebase["🔐 Firebase Auth"]
+    GoogleAuth --> Firebase
+    
+    Firebase -->|Success| Session["Set User Session\nUpdate AuthContext"]
+    Firebase -->|Error| Error["Show Error\nToast Notification"]
+    
+    Session --> LoggedIn
+    Error --> Guest
 
-                         ┌──────────────┐
-                         │  User Opens  │
-                         │     App      │
-                         └──────┬───────┘
-                                │
-                                ▼
-                    ┌───────────────────────┐
-                    │   AuthContext Check   │
-                    │   (onAuthStateChange) │
-                    └───────────┬───────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │                       │
-                    ▼                       ▼
-           ┌───────────────┐       ┌───────────────┐
-           │  User Exists  │       │  No User      │
-           │  (Logged In)  │       │  (Guest)      │
-           └───────┬───────┘       └───────┬───────┘
-                   │                       │
-                   ▼                       ▼
-           ┌───────────────┐       ┌───────────────┐
-           │ Load Profile  │       │  Show Login   │
-           │ Show App      │       │  Button       │
-           └───────────────┘       └───────┬───────┘
-                                           │
-                              ┌────────────┴────────────┐
-                              │                         │
-                              ▼                         ▼
-                     ┌───────────────┐         ┌───────────────┐
-                     │Email/Password │         │ Google OAuth  │
-                     │    Login      │         │    Login      │
-                     └───────┬───────┘         └───────┬───────┘
-                             │                         │
-                             ▼                         ▼
-                     ┌───────────────┐         ┌───────────────┐
-                     │signInWithEmail│         │signInWithPopup│
-                     │ AndPassword() │         │(GoogleProvider│
-                     └───────┬───────┘         └───────┬───────┘
-                             │                         │
-                             └────────────┬────────────┘
-                                          │
-                                          ▼
-                              ┌───────────────────────┐
-                              │  Firebase Auth Sets   │
-                              │  User Session Cookie  │
-                              └───────────────────────┘
+    style Start fill:#dbeafe,stroke:#3b82f6
+    style LoggedIn fill:#dcfce7,stroke:#22c55e
+    style Firebase fill:#fef3c7,stroke:#f59e0b
+    style Error fill:#fee2e2,stroke:#ef4444
 ```
 
 ---
 
 ## 📦 Order Processing Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           ORDER PROCESSING FLOW                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant C as 👤 Customer
+    participant UI as 🖥️ React UI
+    participant Cart as 🛒 CartContext
+    participant API as 📡 orders.js
+    participant FS as 🗄️ Firestore
+    participant Stock as 📦 books.js
 
-Customer Side                           System Side
-─────────────                           ───────────
+    C->>UI: Add items to cart
+    UI->>Cart: addToCart(book)
+    Cart-->>UI: Update cart state
+    
+    C->>UI: Click Checkout
+    UI->>UI: Show Checkout Form
+    
+    C->>UI: Enter shipping & payment
+    C->>UI: Submit Order
+    
+    UI->>API: createOrder(orderData)
+    
+    API->>FS: Save order to orders/
+    FS-->>API: Order ID returned
+    
+    loop For each item
+        API->>Stock: updateStock(bookId, -qty)
+        Stock->>FS: Decrement stock
+    end
+    
+    API-->>UI: Order created successfully
+    UI->>Cart: clearCart()
+    UI->>C: Show Order Success Page
 
-┌─────────────┐                         
-│ Add Items   │                         
-│ to Cart     │                         
-└──────┬──────┘                         
-       │                                
-       ▼                                
-┌─────────────┐                         
-│  Checkout   │                         
-│   Page      │                         
-└──────┬──────┘                         
-       │                                
-       ▼                                
-┌─────────────┐                         ┌─────────────┐
-│   Enter     │                         │  Validate   │
-│  Shipping   │────────────────────────▶│   Form      │
-│   Info      │                         │   Data      │
-└──────┬──────┘                         └──────┬──────┘
-       │                                       │
-       ▼                                       ▼
-┌─────────────┐                         ┌─────────────┐
-│   Enter     │                         │  Process    │
-│  Payment    │────────────────────────▶│  Payment    │
-│   Info      │                         │   (Mock)    │
-└──────┬──────┘                         └──────┬──────┘
-       │                                       │
-       ▼                                       ▼
-┌─────────────┐                         ┌─────────────┐
-│   Submit    │                         │ createOrder │
-│   Order     │────────────────────────▶│     ()      │
-└─────────────┘                         └──────┬──────┘
-                                               │
-                                    ┌──────────┴──────────┐
-                                    │                     │
-                                    ▼                     ▼
-                            ┌─────────────┐       ┌─────────────┐
-                            │Save Order to│       │ Update Stock│
-                            │  Firestore  │       │  (decrement)│
-                            └──────┬──────┘       └──────┬──────┘
-                                   │                     │
-                                   └──────────┬──────────┘
-                                              │
-                                              ▼
-       ┌─────────────┐                ┌─────────────┐
-       │   Order     │◀───────────────│   Status:   │
-       │  Success    │                │   PENDING   │
-       │   Page      │                └─────────────┘
-       └─────────────┘                       │
-                                             ▼
-                                             
-                   Admin updates status through dashboard:
-                   
-        ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-        │ PENDING │───▶│CONFIRMED│───▶│ SHIPPED │───▶│DELIVERED│
-        └─────────┘    └─────────┘    └─────────┘    └─────────┘
+    Note over C,Stock: Admin Dashboard can update order status
 ```
 
 ---
 
 ## 📊 Analytics System
 
-### Data Collection Points
+### Analytics Data Flow
 
+```mermaid
+flowchart LR
+    subgraph Sources["📥 Data Sources"]
+        Orders["orders\ncollection"]
+        Books["books\ncollection"]
+        Customers["customer data\n(from orders)"]
+    end
+    
+    subgraph Processing["⚙️ Analytics Functions"]
+        Stats["getSalesStats()"]
+        TopBooks["getTopSellingBooks()"]
+        Category["getRevenueByCategory()"]
+        Daily["getSalesByDay()"]
+        Authors["getTopAuthors()"]
+        Cities["getOrdersByCity()"]
+        Insights["getCustomerInsights()"]
+    end
+    
+    subgraph Output["📊 Dashboard Components"]
+        StatCards["Stat Cards"]
+        BarChart["Revenue Chart"]
+        Tables["Data Tables"]
+        Lists["Ranking Lists"]
+    end
+    
+    Sources --> Processing
+    Processing --> Output
+
+    style Sources fill:#dbeafe,stroke:#3b82f6
+    style Processing fill:#fef3c7,stroke:#f59e0b
+    style Output fill:#dcfce7,stroke:#22c55e
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           ANALYTICS DATA FLOW                                │
-└─────────────────────────────────────────────────────────────────────────────┘
 
-     DATA SOURCES                    PROCESSING                    OUTPUT
-     ────────────                    ──────────                    ──────
-
-┌─────────────────┐
-│  Orders         │
-│  Collection     │──────┐
-└─────────────────┘      │
-                         │
-┌─────────────────┐      │       ┌─────────────────┐       ┌─────────────────┐
-│  Books          │──────┼──────▶│  Analytics      │──────▶│  Dashboard      │
-│  Collection     │      │       │  Functions      │       │  Components     │
-└─────────────────┘      │       │                 │       │                 │
-                         │       │  • getSalesStats│       │  • StatCards    │
-┌─────────────────┐      │       │  • getTopBooks  │       │  • BarChart     │
-│  Customers      │──────┘       │  • getRevenue   │       │  • Tables       │
-│  (from orders)  │              │    ByCategory   │       │  • Lists        │
-└─────────────────┘              │  • getSalesByDay│       │                 │
-                                 │  • getTopAuthors│       └─────────────────┘
-                                 │  • getOrdersBy  │
-                                 │    City         │
-                                 │  • getCustomer  │
-                                 │    Insights     │
-                                 └─────────────────┘
-```
-
-### Analytics Functions
+### Analytics Functions Reference
 
 | Function | Data Source | Output | Purpose |
 |----------|-------------|--------|---------|
