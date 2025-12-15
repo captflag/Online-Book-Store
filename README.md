@@ -1,10 +1,40 @@
 # 📚 CaptBooks - Premium Indian Online Bookstore
 
-A modern, feature-rich online bookstore built for the Indian market with React, Tailwind CSS, and Firebase. Features advanced animations, comprehensive analytics dashboard, and full e-commerce functionality.
+A modern, feature-rich online bookstore built for the Indian market with React, Tailwind CSS, and Firebase. Features advanced animations, comprehensive analytics dashboard, real-time smart recommendations, and full e-commerce functionality.
 
 ![CaptBooks Home Page](screenshots/home-page.png)
 
-## ✨ Features
+## ✨ New Features (v3.0)
+
+### 🧠 Smart Recommendation Engine
+- **Hybrid System**: Combines Firestore data with client-side algorithms to suggest relevant books.
+- **Context Aware**: "You Might Also Like" section on every book page based on category and author.
+- **Fallback Support**: Gracefully handles offline mode with curated mock data.
+
+### 📖 Real Content Experience
+- **1000+ Real Books**: Using OpenLibrary and curated datasets, every book features a real cover and valid metadata.
+- **Author Portraits**: Integrated Wikimedia/Unsplash portraits for authors (e.g., J.K. Rowling, Abdul Kalam) displayed on book detail pages.
+- **Zero Placeholders**: No more "lorem ipsum" covers – authentic browsing experience guaranteed.
+
+---
+
+## 📸 Gallery
+
+### Shop Page (Real Covers)
+Browsing the catalog with authentic book imagery.
+![Shop Page](screenshots/shop-page-v2.png)
+
+### Book Details (Author Photos & Recommendations)
+Closeup view showing Author Photo and Related Books section.
+![Book Details](screenshots/book-details.png)
+
+### Admin Dashboard
+Comprehensive analytics and inventory management.
+![Admin Dashboard](screenshots/admin-dashboard.png)
+
+---
+
+## 🚀 Core Features
 
 ### 🛒 E-Commerce Functionality
 - **Product Catalog** - Browse books with filtering by category and price
@@ -18,9 +48,6 @@ A modern, feature-rich online bookstore built for the Indian market with React, 
 - **Category Insights** - Revenue breakdown by book category
 - **Customer Analytics** - Top customers, repeat rate, geographic distribution
 - **Inventory Management** - Monitor stock levels with low-stock alerts
-- **Order Management** - Update order status, view order details
-
-![Analytics Dashboard](screenshots/analytics-dashboard.png)
 
 ### 🎨 Premium UI/UX
 - **Light Theme** - Clean, modern design with warm amber accents
@@ -28,7 +55,6 @@ A modern, feature-rich online bookstore built for the Indian market with React, 
   - Floating book elements in hero section
   - 3D tilt effect on book cards
   - Page transitions with smooth fade/slide
-  - Staggered entrance animations
 - **Responsive Design** - Works on all device sizes
 - **Toast Notifications** - Feedback for cart actions
 
@@ -36,14 +62,6 @@ A modern, feature-rich online bookstore built for the Indian market with React, 
 - **INR Currency (₹)** - All prices in Indian Rupees
 - **Indian Authors** - Featured collection of Indian literature
 - **Local Book Content** - Curated selection of Indian books
-
-## 📸 Screenshots
-
-### Shop Page
-![Shop Page](screenshots/shop-page.png)
-
-### Cart Page
-![Cart Page](screenshots/cart-page.png)
 
 ## 🛠️ Tech Stack
 
@@ -88,7 +106,7 @@ A modern, feature-rich online bookstore built for the Indian market with React, 
    VITE_FIREBASE_APP_ID=your_app_id
    ```
    
-   > **Note:** The app works in demo mode without Firebase credentials!
+   > **Note:** The app works in demo mode with Mock Data if Firebase is not configured!
 
 4. **Start the development server**
    ```bash
@@ -107,8 +125,7 @@ src/
 ├── components/
 │   ├── home/
 │   │   ├── Hero.jsx          # Animated hero section
-│   │   ├── FeaturedBooks.jsx # Carousel of featured books
-│   │   └── TopWriters.jsx    # Indian authors showcase
+│   │   └── FeaturedBooks.jsx # Carousel of featured books
 │   ├── shop/
 │   │   └── Filters.jsx       # Category & price filters
 │   ├── ui/
@@ -122,14 +139,14 @@ src/
 │   ├── CartContext.jsx       # Shopping cart state
 │   └── ToastContext.jsx      # Toast notifications
 ├── lib/
-│   ├── books.js              # Book CRUD & inventory
+│   ├── books.js              # Book CRUD & inventory (with Hybrid Mock/DB)
 │   ├── orders.js             # Orders & analytics
 │   ├── firebase.js           # Firebase initialization
 │   └── utils.js              # Utility functions
 ├── pages/
 │   ├── Home.jsx              # Landing page
 │   ├── Shop.jsx              # Product listing
-│   ├── BookDetails.jsx       # Single book view
+│   ├── BookDetails.jsx       # Single book view (with Recommendations)
 │   ├── Cart.jsx              # Shopping cart
 │   ├── Checkout.jsx          # Checkout flow
 │   ├── Login.jsx             # User login
@@ -139,66 +156,6 @@ src/
 │   └── OrderSuccess.jsx      # Order confirmation
 └── index.css                 # Tailwind & custom styles
 ```
-
-## 🔥 Firebase Integration
-
-### Database Schema
-
-**Books Collection**
-```javascript
-{
-  title: string,
-  author: string,
-  price: number,
-  originalPrice: number,
-  category: string,
-  rating: number,
-  stock: number,
-  cover: string,
-  description: string,
-  createdAt: timestamp,
-  updatedAt: timestamp
-}
-```
-
-**Orders Collection**
-```javascript
-{
-  items: [{ bookId, title, author, price, quantity, cover }],
-  customer: { name, email, address, city, zip },
-  subtotal: number,
-  shipping: number,
-  total: number,
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered',
-  createdAt: timestamp
-}
-```
-
-## 📊 Analytics Features
-
-| Feature | Description |
-|---------|-------------|
-| Revenue Trend | 7-day bar chart of daily revenue |
-| Top Selling Books | Ranked list with sales count |
-| Category Breakdown | Revenue distribution by category |
-| Top Authors | Best performing authors by revenue |
-| Geographic Data | Orders by city |
-| Customer Insights | Repeat rate, top customers |
-| Stock Alerts | Low inventory warnings |
-
-## 🎯 Routes
-
-| Path | Description |
-|------|-------------|
-| `/` | Home page |
-| `/shop` | Product catalog |
-| `/book/:id` | Book details |
-| `/cart` | Shopping cart |
-| `/checkout` | Checkout process |
-| `/login` | User login |
-| `/signup` | User registration |
-| `/profile` | User profile |
-| `/admin` | Admin dashboard |
 
 ## 🤝 Contributing
 
