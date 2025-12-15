@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getBookById } from '../lib/books';
+import { getBookById, getRelatedBooks } from '../lib/books';
+import BookCard from '../components/ui/BookCard';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { Button } from '../components/ui/Button';
@@ -10,6 +11,7 @@ import { ShoppingBag, Heart, Share2, ArrowLeft, Star, BookOpen, Truck } from 'lu
 export default function BookDetails() {
     const { id } = useParams();
     const [book, setBook] = useState(null);
+    const [relatedBooks, setRelatedBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [isWishlisted, setIsWishlisted] = useState(false);
@@ -18,11 +20,19 @@ export default function BookDetails() {
 
     useEffect(() => {
         async function fetchBook() {
+            setLoading(true);
             try {
+                // Fetch main book details
                 const data = await getBookById(id);
                 setBook(data);
+
+                // Fetch related books based on category
+                if (data && data.category) {
+                    const related = await getRelatedBooks(id, data.category);
+                    setRelatedBooks(related);
+                }
             } catch (error) {
-                console.error("Failed to fetch book", error);
+                console.error("Failed to fetch book data", error);
             } finally {
                 setLoading(false);
             }
@@ -148,7 +158,16 @@ export default function BookDetails() {
                             <h1 className="text-4xl md:text-5xl font-heading font-bold text-slate-800 leading-tight">
                                 {book.title}
                             </h1>
-                            <p className="text-xl text-slate-500 mt-3">by <span className="text-slate-700 font-medium">{book.author}</span></p>
+                            <div className="flex items-center gap-3 mt-4">
+                                {book.authorImage && (
+                                    <img
+                                        src={book.authorImage}
+                                        alt={book.author}
+                                        className="w-12 h-12 rounded-full border-2 border-white shadow-md object-cover"
+                                    />
+                                )}
+                                <p className="text-xl text-slate-500">by <span className="text-slate-700 font-medium">{book.author}</span></p>
+                            </div>
                         </div>
 
                         {/* Rating */}
@@ -258,6 +277,28 @@ export default function BookDetails() {
                     </motion.div>
                 </div>
             </div>
+
+            {/* Related Books Section */}
+            {relatedBooks.length > 0 && (
+                <div className="bg-white py-16">
+                    <div className="container mx-auto px-4">
+                        <motion.h2
+                            className="text-3xl font-heading font-bold text-slate-800 mb-8"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                        >
+                            You Might Also Like
+                        </motion.h2>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {relatedBooks.map((relatedBook, index) => (
+                                <BookCard key={relatedBook.id} book={relatedBook} index={index} />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

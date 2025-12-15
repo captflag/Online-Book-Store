@@ -36,6 +36,21 @@ export default function Navbar() {
                         <Link to="/" className="text-slate-600 hover:text-amber-600 transition-colors">Home</Link>
                         <Link to="/shop" className="text-slate-600 hover:text-amber-600 transition-colors">Shop</Link>
                         <Link to="/categories" className="text-slate-600 hover:text-amber-600 transition-colors">Categories</Link>
+
+                        {/* Debug Tool */}
+                        <button
+                            onClick={async () => {
+                                if (confirm("Reset entire database to Real Books? This cannot be undone.")) {
+                                    const { resetDatabase } = await import('../lib/books');
+                                    await resetDatabase();
+                                    alert("Database reset! Please refresh.");
+                                    window.location.reload();
+                                }
+                            }}
+                            className="text-xs text-red-500 hover:text-red-700 font-bold border border-red-200 px-2 py-1 rounded"
+                        >
+                            RESET DB
+                        </button>
                     </div>
 
                     {/* Right Actions */}
